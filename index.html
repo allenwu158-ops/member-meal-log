@@ -228,6 +228,52 @@
     width:100%;font-family:inherit;padding:8px;
   }
 
+  .inspire-btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;font-family:inherit;font-size:19px;font-weight:700;
+    border:1.5px dashed var(--blue);border-radius:14px;
+    padding:14px 18px;cursor:pointer;background:rgba(155,127,232,0.1);color:var(--blue-deep);
+    margin-bottom:16px;-webkit-tap-highlight-color:transparent;
+  }
+  .inspire-btn:hover{background:rgba(155,127,232,0.18)}
+
+  .inspire-overlay{
+    position:fixed;inset:0;z-index:50;
+    background:rgba(44,36,56,0.45);
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;backdrop-filter:blur(4px);
+  }
+  .inspire-modal{
+    width:100%;max-width:480px;
+    background:#fffdfb;border-radius:24px;
+    box-shadow:0 24px 70px rgba(31,38,66,0.35);
+    padding:30px 26px;position:relative;
+    animation:rise .3s ease;
+  }
+  .inspire-eyebrow{
+    font-size:15px;font-weight:700;letter-spacing:1px;color:var(--blue-deep);
+    background:rgba(155,127,232,0.14);display:inline-block;
+    padding:4px 14px;border-radius:999px;margin-bottom:16px;
+  }
+  .inspire-text{
+    font-size:23px;font-weight:700;line-height:1.6;color:var(--ink);margin-bottom:22px;
+  }
+  .inspire-nav{display:flex;gap:12px;margin-top:6px}
+  .inspire-nav .btn{flex:1;font-size:18px;min-height:50px}
+  .inspire-copy{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:inherit;font-size:16px;font-weight:700;
+    border:none;border-radius:999px;padding:9px 16px;cursor:pointer;
+    background:var(--rose);color:#fff;margin-bottom:18px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .inspire-copy:hover{filter:brightness(1.06)}
+  .inspire-close{
+    position:absolute;top:16px;right:16px;
+    width:34px;height:34px;border-radius:50%;border:none;
+    background:rgba(120,120,128,0.14);color:var(--ink-soft);font-size:18px;cursor:pointer;
+  }
+
   @media (prefers-reduced-motion:reduce){
     .card,.btn.glow,.copy-btn.glow{animation:none}
   }
@@ -269,6 +315,7 @@
   </header>
 
   <div id="app"></div>
+  <div id="inspireRoot"></div>
 </div>
 
 <script>
@@ -365,9 +412,77 @@ function rememberHistory(key, rawValue){
   saveHistoryToStorage(history);
 }
 
+// 減醣心情：提問式，用來引導學員寫下自己的感受，不提供複製按鈕
+const MOOD_PROMPTS = [
+  "分享一下，減醣之後，你的身體多了什麼？是睡得比較好，還是哪裡感覺不一樣了？",
+  "減醣168這件事，有沒有悄悄影響到你身邊的家人？他們有發現什麼不一樣嗎？",
+  "這禮拜有沒有哪個時刻你很想放棄，後來是怎麼撐過去的？",
+  "最近有沒有哪個小成果，讓你忍不住想跟大家分享一下？",
+  "最近有沒有遇到什麼小小的挫折？說出來，讓大家陪你一起扛。",
+  "減醣168執行到現在，你覺得身體最先改變的是哪個部分？",
+  "這禮拜有沒有一個瞬間，你差點就要破戒，最後是什麼念頭讓你停下來？",
+  "減醣之後，有沒有哪件本來很難的事，現在做起來輕鬆很多？",
+  "家人有沒有因為你，也悄悄改變了什麼吃的習慣？",
+  "這禮拜有沒有一餐，你原本想放棄，最後還是撐過去了？",
+  "今天有沒有哪個瞬間，讓你覺得「這樣做是對的」？",
+  "這禮拜有沒有哪一餐，你覺得自己沒吃好，但也沒關係？",
+  "早上起床的時候，你有沒有感覺跟以前不一樣了？",
+  "有沒有人因為看到你的改變，也開始問你怎麼做的？",
+  "這禮拜有沒有一次聚餐，讓你特別緊張要怎麼選？",
+  "有沒有哪件衣服，你穿起來的感覺跟以前不一樣了？",
+  "有沒有哪一天，你破戒了，但隔天還是繼續？",
+  "你的體力有沒有哪裡變好了，是爬樓梯、還是走路？",
+  "有沒有哪一餐，你煮的東西，全家人都跟著一起吃？",
+  "這禮拜有沒有哪個時刻，你特別想吃甜的，後來怎麼處理？",
+  "這禮拜有沒有一個數字，讓你看了很有成就感？",
+  "有沒有哪一餐，你其實心裡有點小小的罪惡感？",
+  "減醣之後，你的皮膚、氣色，有沒有人說你不一樣了？",
+  "有沒有哪個家人，本來反對你，現在反而開始支持你？",
+  "有沒有哪個場合，你必須跟大家解釋為什麼不吃某樣東西？",
+  "這禮拜有沒有哪一次，你發現自己不用刻意忍耐，就自然而然選對了？",
+  "有沒有哪一天，你完全沒有照計畫吃，但你原諒自己了？",
+  "睡眠有沒有變好？半夜會不會比較不容易餓醒？",
+  "有沒有哪個家人的健康數字，也跟著你一起變好了？",
+  "有沒有一次，你必須在辦公室的下午茶前守住自己？",
+  "有沒有人主動誇獎你的改變，你當下是什麼心情？",
+  "有沒有哪一餐，你吃完才後悔，但決定不苛責自己？",
+  "你的情緒有沒有變得比較穩定，不像以前容易暴躁？",
+  "有沒有哪一次，你在教家人怎麼吃，而不是家人在教你？",
+  "這禮拜有沒有哪一餐，因為心情不好而特別想吃東西？",
+  "有沒有哪個朋友，因為你的改變，也想開始試試看？",
+  "有沒有哪一次，你覺得自己吃太少了，反而更想放棄？"
+];
+
+// 金句分享：斷言式，直接可以複製貼上分享
+const QUOTE_LINES = [
+  "年齡回不去了，但體重回得去。",
+  "你可以老，但不必胖。",
+  "時間會帶走很多東西，但不該帶走你對自己的掌控權。",
+  "別人在意你瘦了幾公斤，你自己知道，你贏回來的是選擇權。",
+  "體重機上的數字會變，但你重新相信自己的能力，不會消失。",
+  "節制不是失去自由，是把自由還給自己。",
+  "忌口不是委屈自己，是拒絕讓食物替你做決定。",
+  "瘦下來不是取悅別人，是把身體的主導權從食物手上拿回來。",
+  "自律不是折磨自己，是提前把舒服留給未來的自己。",
+  "飢餓感不是敵人，是身體在提醒你，它還沒學會怎麼燃燒脂肪。",
+  "瘦身從來不是做給誰看的，是你送給自己的一份禮物。",
+  "你不是在虧待自己，你是在投資那個更喜歡鏡子的自己。",
+  "每一次選擇原型食物，都是在犒賞未來會感謝你的身體。",
+  "你值得的不是瘦，是那種穿什麼都不用先想尺碼的自在。",
+  "你不必很厲害才能開始，但你必須開始，才能很厲害。",
+  "不是等瘦了才敢自信，是先自信，瘦才會跟著發生。",
+  "不是意志力強的人才能瘦，是願意一直重新開始的人，最後都瘦了。",
+  "不是身材決定你的價值，是你怎麼定義自己，決定了身材能不能被你掌握。",
+  "瘦得慢一點沒關係，比坐著不動的人，你永遠快一步。",
+  "忍得住嘴，才守得住心。",
+  "控制得了飲食的人，通常也控制得了人生的方向。",
+  "精緻的外表背後，是看不見的自律，和看得見的堅持。",
+  "你戒得掉的，不只是那口甜食，還有那個習慣放棄的自己。"
+];
+
 const HEAD_QUESTIONS = [
-  {key:"mood", label:"減醣心情", t:"想分享今天的減醣心情嗎？", type:"text", noToggle:true, noHistory:true, skippable:true, hint:"沒有想法可以直接按跳過"},
-  {key:"quote", label:"金句分享", t:"有沒有想分享的金句？", type:"text", noToggle:true, noHistory:true, skippable:true, hint:"沒有想法可以直接按跳過"},
+  {key:"mood", label:"減醣心情", t:"想分享今天的減醣心情嗎？", type:"text", noToggle:true, noHistory:true, skippable:true, hint:"沒有想法可以直接按跳過", inspireType:"mood"},
+  {key:"quote", label:"金句分享", t:"有沒有想分享的金句？", type:"text", noToggle:true, noHistory:true, skippable:true, hint:"沒有想法可以直接按跳過", inspireType:"quote"},
   {key:"date", label:"日期", t:"日期", type:"date", default:todayStr(), bigTitle:true}
 ];
 
@@ -506,6 +621,7 @@ function render(){
       <div class="q-num">${q.label}</div>
       <div class="q-title${q.bigTitle?" big":""}">${q.t}</div>
       ${hintHtml}
+      ${q.inspireType?`<button type="button" class="inspire-btn" onclick="openInspire('${q.inspireType}')">✨ 沒靈感？點我看看</button>`:``}
       ${noneToggleHtml}
       ${quickFillHtml}
       ${historyHtml}
@@ -736,6 +852,59 @@ function renderReview(){
       <div class="toast" id="toast">已複製文字，貼到社團分享吧✅</div>
       <button class="edit-link" onclick="idx=0;render()">回去修改內容</button>
     </div>`;
+}
+
+let inspireLastIndex = -1;
+
+function pickInspireLine(type){
+  const pool = type === "quote" ? QUOTE_LINES : MOOD_PROMPTS;
+  if(pool.length === 0) return "";
+  let i = Math.floor(Math.random() * pool.length);
+  if(pool.length > 1){
+    while(i === inspireLastIndex) i = Math.floor(Math.random() * pool.length);
+  }
+  inspireLastIndex = i;
+  return pool[i];
+}
+
+function openInspire(type, silent){
+  const line = pickInspireLine(type);
+  const root = document.getElementById("inspireRoot");
+  const isQuote = type === "quote";
+  const eyebrow = isQuote ? "金句靈感" : "心情靈感";
+  const copyBtn = isQuote
+    ? `<button type="button" class="inspire-copy" onclick="useInspireQuote(event)">📤 分享這句</button>`
+    : "";
+  root.innerHTML = `
+    <div class="inspire-overlay" onclick="if(event.target===this) closeInspire()">
+      <div class="inspire-modal">
+        <button type="button" class="inspire-close" onclick="closeInspire()">✕</button>
+        <div class="inspire-eyebrow">${eyebrow}</div>
+        <div class="inspire-text" id="inspireLineText">${escapeHtml(line)}</div>
+        ${copyBtn}
+        <div class="inspire-nav">
+          <button type="button" class="btn btn-ghost" onclick="openInspire('${type}')">🔄 換一句</button>
+          <button type="button" class="btn btn-primary" onclick="closeInspire()">關閉，開始寫</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function closeInspire(){
+  const root = document.getElementById("inspireRoot");
+  if(root) root.innerHTML = "";
+}
+
+function useInspireQuote(e){
+  const text = document.getElementById("inspireLineText").textContent;
+  const f = document.getElementById("fld");
+  if(f){
+    f.value = text;
+    answers[questions[idx].key] = text;
+    autoGrow(f);
+    f.focus();
+  }
+  closeInspire();
 }
 
 function copyText(e){
