@@ -326,7 +326,8 @@ const questions = [
   {key:"fruit", label:"水果", t:"水果吃了什麼？", type:"text", hint:"例如：芭樂、蘋果"},
   {key:"seasoning", label:"調味料", t:"調味料用了什麼？", type:"text", hint:"例如：鹽、胡椒、醬油", noToggle:true},
   {key:"veggie", label:"青菜", t:"青菜吃了什麼？", type:"text", hint:"例如：花椰菜、地瓜葉"},
-  {key:"drink", label:"飲料／湯品", t:"喝了什麼飲料或湯？", type:"text", hint:"例如：黑咖啡、無糖茶、味噌湯", verb:"喝", quickFill:["黑蒜醋","牛蒡茶"]}
+  {key:"drink", label:"飲料／湯品", t:"喝了什麼飲料或湯？", type:"text", hint:"例如：黑咖啡、無糖茶、味噌湯", verb:"喝", quickFill:["黑蒜醋","牛蒡茶"]},
+  {key:"tools", label:"減醣神器", t:"今天有搭配減醣神器嗎？", type:"multiselect", opts:["白腎豆","雙孅","窈精靈","大蒜精","酵素益生菌"]}
 ];
 
 const answers = {};
@@ -404,6 +405,12 @@ function render(){
       const sel = answers[q.key]===o ? "selected":"";
       return `<label class="opt ${sel}"><input type="radio" name="r" value="${escapeAttr(o)}" ${answers[q.key]===o?"checked":""}><span>${o}</span></label>`;
     }).join("") + `</div>`;
+  } else if(q.type==="multiselect"){
+    const current = answers[q.key] ? answers[q.key].split(/、|,|，/).map(s=>s.trim()).filter(Boolean) : [];
+    field = `<div class="options">` + q.opts.map((o)=>{
+      const sel = current.includes(o);
+      return `<label class="opt ${sel?"selected":""}"><input type="checkbox" name="m" value="${escapeAttr(o)}" ${sel?"checked":""}><span>${o}</span></label>`;
+    }).join("") + `</div>`;
   }
 
   const hintHtml = q.hint ? `<div class="q-hint">${q.hint}</div>` : "";
@@ -469,6 +476,17 @@ function wire(q){
         answers[q.key]=r.value;
         app.querySelectorAll(".opt").forEach(o=>o.classList.remove("selected"));
         r.closest(".opt").classList.add("selected");
+      });
+    });
+  }
+  if(q.type==="multiselect"){
+    app.querySelectorAll('input[name=m]').forEach(c=>{
+      c.addEventListener("change",()=>{
+        let items = answers[q.key] ? answers[q.key].split(/、|,|，/).map(s=>s.trim()).filter(Boolean) : [];
+        if(c.checked){ if(!items.includes(c.value)) items.push(c.value); }
+        else { items = items.filter(v=>v!==c.value); }
+        answers[q.key] = items.join("、");
+        c.closest(".opt").classList.toggle("selected", c.checked);
       });
     });
   }
@@ -580,7 +598,8 @@ function buildText(){
     foodLine("fruit","水果"),
     foodLine("seasoning","調味料"),
     foodLine("veggie","青菜"),
-    foodLine("drink","飲料／湯品","喝")
+    foodLine("drink","飲料／湯品","喝"),
+    `減醣神器：${answers.tools}`
   ];
   return lines.join("\n");
 }
