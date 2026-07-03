@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="only light">
+<meta name="theme-color" content="#f8f5ff">
+<title>減醣168活躍成員｜減醣餐紀錄表</title>
+<style>
+  :root{
+    color-scheme:only light;
+    --blue:#9B7FE8;
+    --blue-deep:#6D5BD0;
+    --purple:#FDA1C4;
+    --green:#6FE0C0;
+    --orange:#F2A65A;
+    --rose:#F2A6C9;
+    --ink:#2C2438;
+    --ink-soft:#7A7086;
+    --glass-bg:rgba(255,255,255,0.58);
+    --glass-border:rgba(255,255,255,0.75);
+    --line:rgba(60,60,67,0.14);
+    --shadow:0 20px 60px rgba(31,38,66,0.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#f8f5ff}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 16px 60px;
+    line-height:1.7;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  .decor{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55}
+  .blob-1{width:420px;height:420px;top:-140px;left:-120px;background:radial-gradient(circle at 30% 30%,var(--blue),transparent 70%)}
+  .blob-2{width:380px;height:380px;top:20%;right:-160px;background:radial-gradient(circle at 60% 40%,var(--purple),transparent 70%)}
+  .blob-3{width:340px;height:340px;bottom:-120px;left:10%;background:radial-gradient(circle at 50% 50%,var(--green),transparent 70%)}
+
+  .wrap{width:100%;max-width:560px;position:relative;z-index:1}
+
+  header.brand{text-align:center;margin-bottom:24px}
+  .brand-title{font-size:37px;font-weight:800;letter-spacing:.3px;line-height:1.4}
+  .brand-title .line1{display:block;color:var(--ink)}
+  .brand-title .line2{
+    display:block;
+    background:linear-gradient(90deg,var(--blue-deep),var(--purple));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .tagline{
+    display:inline-block;font-size:18px;font-weight:600;letter-spacing:1.5px;
+    color:var(--blue-deep);
+    background:rgba(155,127,232,0.14);
+    padding:5px 16px;border-radius:999px;margin-top:12px;
+  }
+
+  .progress-shell{
+    height:8px;background:rgba(120,120,128,0.16);border-radius:99px;overflow:hidden;
+    margin:24px 0 8px;
+  }
+  .progress-bar{
+    height:100%;width:0;
+    background:linear-gradient(90deg,var(--blue),var(--purple));
+    border-radius:99px;transition:width .35s ease;
+  }
+  .progress-text{text-align:right;font-size:17px;color:var(--ink-soft);margin-bottom:18px}
+
+  .card{
+    background:var(--glass-bg);
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border:1px solid var(--glass-border);
+    border-radius:26px;
+    box-shadow:var(--shadow);
+    padding:32px 26px;
+    animation:rise .4s ease;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .q-num{font-size:18px;color:var(--blue-deep);font-weight:700;letter-spacing:1px;margin-bottom:10px}
+  .q-title{font-size:26px;font-weight:700;margin-bottom:10px;line-height:1.5}
+  .q-title.big{font-size:36px}
+  .q-hint{font-size:19px;color:var(--ink-soft);margin-bottom:20px;white-space:pre-line;line-height:1.7}
+  .q-hint.warn{
+    font-size:22px;line-height:1.7;
+    background:rgba(242,166,90,0.16);border-left:4px solid var(--orange);
+    padding:12px 16px;border-radius:10px;color:#8a5a00;
+  }
+
+  .none-toggle{
+    display:flex;align-items:center;gap:12px;min-height:54px;
+    border:1.5px dashed var(--line);border-radius:14px;
+    padding:14px 18px;cursor:pointer;background:rgba(255,255,255,0.4);
+    transition:border .2s,background .2s;font-size:20px;font-weight:600;color:var(--ink-soft);
+    margin-bottom:14px;
+    -webkit-tap-highlight-color:transparent;-webkit-transform:translateZ(0);transform:translateZ(0);
+  }
+  .none-toggle:hover{border-color:var(--blue)}
+  .none-toggle.selected{
+    border-style:solid;border-color:var(--blue-deep);
+    background:rgba(155,127,232,0.16);color:var(--blue-deep);
+  }
+  .none-toggle input{accent-color:var(--blue);width:20px;height:20px;flex:0 0 auto}
+
+  .quick-fill{
+    position:relative;z-index:0;
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:inherit;font-size:19px;font-weight:600;
+    border:1.5px solid var(--blue);border-radius:999px;
+    padding:10px 18px;cursor:pointer;background:transparent;color:var(--blue-deep);
+    margin-bottom:14px;transition:border-color .15s,color .15s;
+    -webkit-tap-highlight-color:transparent;-webkit-transform:translateZ(0);transform:translateZ(0);
+  }
+  .quick-fill:hover{border-color:var(--blue-deep)}
+  .chip-fill{
+    position:absolute;inset:0;border-radius:inherit;z-index:-1;
+    opacity:0;transition:opacity .15s ease;pointer-events:none;
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+  .chips .quick-fill{margin-bottom:0}
+
+  .history-label{font-size:16px;font-weight:600;color:var(--ink-soft);margin-bottom:10px}
+  .history-fill{
+    border-color:var(--rose) !important;color:#a84f74 !important;
+  }
+  .history-fill:hover{border-color:#a84f74 !important}
+
+  .portion-label{font-size:18px;font-weight:700;color:var(--ink);margin:18px 0 12px}
+  .portion-options{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+  .portion-opt{
+    position:relative;z-index:0;
+    font-family:inherit;font-size:17px;font-weight:600;
+    border:1.5px solid var(--line);border-radius:999px;
+    padding:11px 18px;cursor:pointer;background:transparent;color:var(--ink);
+    transition:border-color .15s,color .15s;display:inline-flex;align-items:center;
+    -webkit-tap-highlight-color:transparent;-webkit-transform:translateZ(0);transform:translateZ(0);
+  }
+  .portion-opt input{position:absolute;opacity:0;pointer-events:none}
+  .portion-opt:hover{border-color:var(--green)}
+
+  input[type=text],input[type=date],input[type=time],textarea{
+    width:100%;font-family:inherit;font-size:22px;color:var(--ink);
+    border:1.5px solid var(--line);border-radius:14px;
+    padding:15px 16px;background:rgba(255,255,255,0.7);
+    transition:border .2s,box-shadow .2s,opacity .2s;
+  }
+  input:focus,textarea:focus{
+    outline:none;border-color:var(--blue);
+    box-shadow:0 0 0 4px rgba(155,127,232,0.22);
+  }
+  input:disabled{
+    opacity:.45;background:rgba(120,120,128,0.1);cursor:not-allowed;
+  }
+  textarea{resize:none;min-height:58px;line-height:1.4;overflow:hidden;transition:height .1s ease}
+
+  .options{display:flex;flex-direction:column;gap:12px}
+  .opt{
+    display:flex;align-items:flex-start;gap:12px;min-height:58px;
+    border:1.5px solid var(--line);border-radius:14px;
+    padding:16px 18px;cursor:pointer;background:rgba(255,255,255,0.55);
+    transition:border .2s,background .2s,transform .1s;font-size:23px;line-height:1.55;
+    -webkit-tap-highlight-color:transparent;-webkit-transform:translateZ(0);transform:translateZ(0);
+  }
+  .opt:hover{border-color:var(--blue)}
+  .opt.selected{border-color:var(--blue);background:rgba(155,127,232,0.14)}
+  .opt input{margin-top:3px;accent-color:var(--blue);width:20px;height:20px;flex:0 0 auto}
+
+  .nav{display:flex;gap:12px;margin-top:26px}
+  .btn{
+    position:relative;overflow:hidden;min-height:54px;
+    font-family:inherit;font-size:21px;font-weight:700;
+    border:none;border-radius:14px;padding:15px 22px;cursor:pointer;
+    transition:transform .1s,opacity .2s,background .2s;
+  }
+  .btn:active{transform:translateY(1px) scale(.99)}
+  .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-deep));color:#fff;flex:1}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn-ghost{background:rgba(255,255,255,0.5);color:var(--ink-soft);border:1.5px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--ink-soft)}
+
+  @keyframes glowPulse{
+    0%{box-shadow:0 0 0 0 rgba(155,127,232,0.55)}
+    70%{box-shadow:0 0 0 22px rgba(155,127,232,0)}
+    100%{box-shadow:0 0 0 0 rgba(155,127,232,0)}
+  }
+  .btn.glow{animation:glowPulse .65s ease-out}
+  .copy-btn.glow{animation-name:glowPulseRose}
+  @keyframes glowPulseRose{
+    0%{box-shadow:0 0 0 0 rgba(242,166,201,0.6)}
+    70%{box-shadow:0 0 0 22px rgba(242,166,201,0)}
+    100%{box-shadow:0 0 0 0 rgba(242,166,201,0)}
+  }
+
+  .review .card{padding:30px 24px}
+  .review h2{font-size:26px;margin-bottom:8px}
+  .review .sub{color:var(--ink-soft);font-size:19px;margin-bottom:20px;line-height:1.6}
+  .summary{
+    background:rgba(255,255,255,0.65);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;max-height:340px;overflow:auto;
+    font-size:18.5px;white-space:pre-wrap;color:var(--ink-soft);line-height:1.85;
+  }
+  .copy-btn{
+    width:100%;margin-top:18px;
+    background:linear-gradient(135deg,var(--rose),var(--blue-deep));
+    color:#fff;font-size:22px;padding:17px;
+  }
+  .copy-btn:hover{filter:brightness(1.05)}
+  .toast{
+    margin-top:14px;text-align:center;font-weight:700;color:#1f8f73;font-size:19px;
+    background:rgba(111,224,192,0.2);border-radius:12px;padding:14px;
+    opacity:0;transform:translateY(6px);transition:all .3s;
+  }
+  .toast.show{opacity:1;transform:none}
+  .edit-link{
+    display:block;text-align:center;margin-top:18px;color:var(--ink-soft);
+    font-size:18px;background:none;border:none;cursor:pointer;text-decoration:underline;
+    width:100%;font-family:inherit;padding:8px;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .card,.btn.glow,.copy-btn.glow{animation:none}
+  }
+
+  @media (prefers-color-scheme:dark){
+    html,body{background:#f8f5ff !important}
+    body{color:#2C2438 !important}
+    .brand-title .line1{color:#2C2438 !important}
+    .card{background:rgba(255,255,255,0.58) !important;color:#2C2438 !important}
+    .q-title{color:#2C2438 !important}
+    input[type=text],input[type=date],input[type=time],textarea{
+      background:rgba(255,255,255,0.7) !important;
+      color:#2C2438 !important;
+      -webkit-text-fill-color:#2C2438 !important;
+    }
+    .opt{background:rgba(255,255,255,0.55) !important;color:#2C2438 !important}
+    .none-toggle{background:rgba(255,255,255,0.4) !important;color:#7A7086 !important}
+    .quick-fill{background:transparent !important;color:#6D5BD0 !important}
+    .history-fill{color:#a84f74 !important}
+    .portion-opt{background:transparent !important;color:#2C2438 !important}
+    .summary{background:rgba(255,255,255,0.65) !important;color:#7A7086 !important}
+  }
+</style>
+</head>
+<body>
+<div class="decor">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<div class="wrap">
+  <header class="brand">
+    <h1 class="brand-title">
+      <span class="line1">減醣168活躍成員</span>
+      <span class="line2">減醣餐紀錄表</span>
+    </h1>
+    <span class="tagline">記錄下每一餐，減醣更心安</span>
+  </header>
+
+  <div id="app"></div>
+</div>
+
+<script>
+function todayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function nowStr(){
+  const d = new Date();
+  const h = String(d.getHours()).padStart(2,"0");
+  const mi = String(d.getMinutes()).padStart(2,"0");
+  return `${h}:${mi}`;
+}
+
+const HISTORY_STORAGE_KEY = "mealLogHistory_v1";
+const HISTORY_MAX = 6;
+
+function loadHistory(){
+  try{
+    return JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || "{}");
+  }catch(e){
+    return {};
+  }
+}
+function saveHistoryToStorage(history){
+  try{
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+  }catch(e){
+    // 私密瀏覽模式或儲存空間被封鎖時，安靜地放棄，不影響其他功能
+  }
+}
+const history = loadHistory();
+
+function rememberHistory(key, rawValue){
+  const items = String(rawValue).split(/、|,|，/).map(s=>s.trim()).filter(Boolean);
+  if(items.length === 0) return;
+  let list = history[key] || [];
+  items.forEach(item=>{
+    list = list.filter(x=>x !== item);
+    list.unshift(item);
+  });
+  history[key] = list.slice(0, HISTORY_MAX);
+  saveHistoryToStorage(history);
+}
+
+const questions = [
+  {key:"date", label:"日期", t:"日期", type:"date", default:todayStr(), bigTitle:true},
+  {
+    key:"meal", label:"哪一餐", t:"這是哪一餐？", type:"radio",
+    opts:["早餐","午餐","晚餐"]
+  },
+  {key:"time", label:"幾點吃", t:"幾點吃的？", type:"time", default:"", hint:"滑動選擇正確的用餐時間，不是現在的時間"},
+  {key:"note", label:"今日狀況", t:"今日狀況", type:"text", hint:"有特別狀況才需要填，例如：家庭聚餐、生理期、感冒、應酬", noneLabel:"沒有特殊狀況"},
+  {key:"protein", label:"蛋白質", t:"蛋白質吃了什麼？", type:"text", hint:"例如：雞腿、雞胸肉、雞蛋、豬排、牛肉、豆腐、蝦仁", warn:"如果是用炸的、裹粉的，請務必寫清楚，例如：炸雞腿、炸豬排。如果有去皮，請附註「去皮」", noToggle:true, portions:["沒吃","不到一個掌心","大約一個掌心","超過一個掌心"]},
+  {key:"starch", label:"澱粉", t:"澱粉吃了什麼？", type:"text", hint:"點選常見選項，或直接在下面輸入", noToggle:true, quickFill:["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"], portions:["沒吃","1/3拳頭","半拳頭","一拳頭","超過一拳頭"]},
+  {key:"fat", label:"油脂", t:"油脂吃了什麼？", type:"text", hint:"例如：堅果、酪梨、橄欖油", noToggle:true, quickFill:["MCT油","餐廳的油"]},
+  {key:"fruit", label:"水果", t:"水果吃了什麼？", type:"text", hint:"例如：芭樂、蘋果"},
+  {key:"seasoning", label:"調味料", t:"調味料用了什麼？", type:"text", hint:"例如：鹽、胡椒、醬油", noToggle:true},
+  {key:"veggie", label:"青菜", t:"青菜吃了什麼？", type:"text", hint:"例如：花椰菜、地瓜葉"},
+  {key:"drink", label:"飲料／湯品", t:"喝了什麼飲料或湯？", type:"text", hint:"例如：黑咖啡、無糖茶、味噌湯", verb:"喝", quickFill:["黑蒜醋","牛蒡茶"]}
+];
+
+const answers = {};
+const noneAnswers = {};
+const portionAnswers = {};
+questions.forEach(q=>{ answers[q.key] = q.default || ""; noneAnswers[q.key] = false; portionAnswers[q.key] = ""; });
+
+let idx = 0;
+const app = document.getElementById("app");
+
+function render(){
+  if(idx >= questions.length){ return renderReview(); }
+  const q = questions[idx];
+  const total = questions.length;
+  const pct = Math.round((idx)/total*100);
+  const isNone = noneAnswers[q.key];
+
+  let field = "";
+  let noneToggleHtml = "";
+  let quickFillHtml = "";
+  let portionHtml = "";
+  let historyHtml = "";
+  if(q.type==="text"){
+    field = `<textarea id="fld" rows="1" placeholder="請在此填寫" ${isNone?"disabled":""}>${escapeHtml(answers[q.key])}</textarea>`;
+    if(!q.noToggle){
+      noneToggleHtml = `<label class="none-toggle ${isNone?"selected":""}">
+        <input type="checkbox" id="noneChk" ${isNone?"checked":""}>
+        <span>${q.noneLabel || `這一餐沒有${q.verb||"吃"}${q.label}`}</span>
+      </label>`;
+    }
+    if(q.quickFill){
+      const current = answers[q.key].split(/、|,|，/).map(s=>s.trim()).filter(Boolean);
+      const btnStyle = `border-color:#9B7FE8;border-width:4px;font-weight:800;color:#fff`;
+      const fillSpan = (op)=>`<span class="chip-fill" style="background:#9B7FE8;opacity:${op}"></span>`;
+      const checkSpan = (on)=>`<span class="chip-check">${on?"✓ ":""}</span>`;
+      if(q.quickFill.length === 1){
+        const val = q.quickFill[0];
+        const sel = current.includes(val);
+        quickFillHtml = `<button type="button" class="quick-fill ${sel?"selected":""}" ${sel?`style="${btnStyle}"`:""} onclick="toggleQuickFill(event,'${escapeAttr(val)}')">${fillSpan(sel?1:0)}${checkSpan(sel)}🍽️ 外食不確定？點我填入「${val}」</button>`;
+      } else {
+        quickFillHtml = `<div class="chips">` + q.quickFill.map(val=>{
+          const sel = current.includes(val);
+          return `<button type="button" class="quick-fill ${sel?"selected":""}" ${sel?`style="${btnStyle}"`:""} onclick="toggleQuickFill(event,'${escapeAttr(val)}')">${fillSpan(sel?1:0)}${checkSpan(sel)}${val}</button>`;
+        }).join("") + `</div>`;
+      }
+    }
+    if(q.portions){
+      const curPortion = portionAnswers[q.key];
+      portionHtml = `<div class="portion-label">這次的份量大概是？</div><div class="portion-options">` + q.portions.map(p=>{
+        const sel = curPortion===p;
+        const inlineStyle = sel ? `style="border-color:#1f8f73;border-width:4px;font-weight:800;color:#fff"` : "";
+        const fill = `<span class="chip-fill" style="background:#1f8f73;opacity:${sel?1:0}"></span>`;
+        const check = `<span class="chip-check">${sel?"✓ ":""}</span>`;
+        return `<button type="button" class="portion-opt ${sel?"selected":""}" ${inlineStyle} onclick="selectPortion(event,'${escapeAttr(p)}')">${fill}${check}${p}</button>`;
+      }).join("") + `</div>`;
+    }
+    const presetList = q.quickFill ? q.quickFill : [];
+    const pastItems = (history[q.key] || []).filter(item => !presetList.includes(item));
+    if(pastItems.length > 0){
+      const current = answers[q.key].split(/、|,|，/).map(s=>s.trim()).filter(Boolean);
+      const histBtnStyle = `border-color:#F2A6C9;border-width:4px;font-weight:800;color:#fff`;
+      historyHtml = `<div class="history-label">你上次還${q.verb||"吃"}過</div><div class="chips">` + pastItems.map(val=>{
+        const sel = current.includes(val);
+        const fill = `<span class="chip-fill" style="background:#F2A6C9;opacity:${sel?1:0}"></span>`;
+        const check = `<span class="chip-check">${sel?"✓ ":""}</span>`;
+        return `<button type="button" class="quick-fill history-fill ${sel?"selected":""}" ${sel?`style="${histBtnStyle}"`:""} onclick="toggleQuickFill(event,'${escapeAttr(val)}')">${fill}${check}${val}</button>`;
+      }).join("") + `</div>`;
+    }
+  } else if(q.type==="date"){
+    field = `<input type="date" id="fld" value="${escapeAttr(answers[q.key])}">`;
+  } else if(q.type==="time"){
+    field = `<input type="time" id="fld" value="${escapeAttr(answers[q.key])}">`;
+  } else if(q.type==="radio"){
+    field = `<div class="options">` + q.opts.map((o)=>{
+      const sel = answers[q.key]===o ? "selected":"";
+      return `<label class="opt ${sel}"><input type="radio" name="r" value="${escapeAttr(o)}" ${answers[q.key]===o?"checked":""}><span>${o}</span></label>`;
+    }).join("") + `</div>`;
+  }
+
+  const hintHtml = q.hint ? `<div class="q-hint">${q.hint}</div>` : "";
+  const warnHtml = (q.warn && !isNone) ? `<div class="q-hint warn">${q.warn}</div>` : "";
+
+  app.className = "";
+  app.innerHTML = `
+    <div class="progress-shell"><div class="progress-bar" style="width:${pct}%"></div></div>
+    <div class="progress-text">第${idx+1}項／共${total}項</div>
+    <div class="card">
+      <div class="q-num">${q.label}</div>
+      <div class="q-title${q.bigTitle?" big":""}">${q.t}</div>
+      ${hintHtml}
+      ${noneToggleHtml}
+      ${quickFillHtml}
+      ${historyHtml}
+      ${field}
+      ${portionHtml}
+      ${warnHtml}
+      <div class="nav">
+        ${idx>0?`<button class="btn btn-ghost" onclick="prev(event)">上一項</button>`:``}
+        <button class="btn btn-primary" onclick="next(event)">${idx===questions.length-1?"完成紀錄":"下一項"}</button>
+      </div>
+    </div>`;
+
+  wire(q);
+}
+
+function autoGrow(el){
+  if(!el) return;
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
+function wire(q){
+  if(q.type==="text"){
+    const fld = document.getElementById("fld");
+    if(fld){
+      autoGrow(fld);
+      fld.addEventListener("input", ()=>autoGrow(fld));
+    }
+    const chk = document.getElementById("noneChk");
+    if(chk){
+      chk.addEventListener("change", ()=>{
+        noneAnswers[q.key] = chk.checked;
+        const f = document.getElementById("fld");
+        if(chk.checked){
+          answers[q.key] = "";
+          f.value = "";
+          f.disabled = true;
+        } else {
+          f.disabled = false;
+          f.focus();
+        }
+        chk.closest(".none-toggle").classList.toggle("selected", chk.checked);
+        render();
+      }, {once:false});
+    }
+  }
+  if(q.type==="radio"){
+    app.querySelectorAll('input[name=r]').forEach(r=>{
+      r.addEventListener("change",()=>{
+        answers[q.key]=r.value;
+        app.querySelectorAll(".opt").forEach(o=>o.classList.remove("selected"));
+        r.closest(".opt").classList.add("selected");
+      });
+    });
+  }
+}
+
+function selectPortion(e, val){
+  e.preventDefault();
+  const q = questions[idx];
+  const f = document.getElementById("fld");
+  if(f && !f.disabled) answers[q.key] = f.value.trim();
+  // 再點一次同一個選項可以取消
+  portionAnswers[q.key] = (portionAnswers[q.key] === val) ? "" : val;
+  noneAnswers[q.key] = (portionAnswers[q.key] === "沒吃");
+  if(noneAnswers[q.key]) answers[q.key] = "";
+  render();
+}
+
+function paintChip(btn, selected){
+  // 邊框粗細與色塊透明度雙管齊下：透明度變化是瀏覽器動畫的地基，
+  // 不可能被跳過，用來繞開手機瀏覽器在毛玻璃背景下不重繪背景色的問題
+  const fillSpan = btn.querySelector(".chip-fill");
+  const checkSpan = btn.querySelector(".chip-check");
+  if(selected){
+    btn.classList.add("selected");
+    btn.style.color = "#ffffff";
+    btn.style.borderWidth = "4px";
+    btn.style.fontWeight = "800";
+    if(fillSpan) fillSpan.style.opacity = "1";
+    if(checkSpan) checkSpan.textContent = "✓ ";
+  } else {
+    btn.classList.remove("selected");
+    btn.style.color = "";
+    btn.style.borderWidth = "";
+    btn.style.fontWeight = "";
+    if(fillSpan) fillSpan.style.opacity = "0";
+    if(checkSpan) checkSpan.textContent = "";
+  }
+}
+
+function toggleQuickFill(e, val){
+  e.preventDefault();
+  const btn = e.currentTarget;
+  const f = document.getElementById("fld");
+  let items = f.value.split(/、|,|，/).map(s=>s.trim()).filter(Boolean);
+  const i = items.indexOf(val);
+  if(i > -1){ items.splice(i,1); paintChip(btn, false); }
+  else { items.push(val); paintChip(btn, true); }
+  f.value = items.join("、");
+  answers[questions[idx].key] = f.value;
+  autoGrow(f);
+}
+
+function saveCurrent(){
+  const f=document.getElementById("fld");
+  const q = questions[idx];
+  if(f && !f.disabled){
+    answers[q.key]=f.value.trim();
+    if(q.type==="text" && answers[q.key]) rememberHistory(q.key, answers[q.key]);
+  }
+}
+
+function flash(e){
+  if(!e || !e.currentTarget) return;
+  const el = e.currentTarget;
+  el.classList.remove("glow");
+  void el.offsetWidth;
+  el.classList.add("glow");
+  setTimeout(()=>el.classList.remove("glow"),650);
+}
+
+function next(e){ flash(e); saveCurrent(); idx++; render(); window.scrollTo({top:0,behavior:"smooth"}); }
+function prev(e){ flash(e); saveCurrent(); idx--; render(); window.scrollTo({top:0,behavior:"smooth"}); }
+
+function formatDate(iso){
+  if(!iso) return "";
+  const [y,m,d] = iso.split("-");
+  return `${y}／${m}／${d}`;
+}
+
+function formatTime(hm){
+  if(!hm) return "";
+  let [h,m] = hm.split(":").map(Number);
+  const period = h < 12 ? "上午" : "下午";
+  let h12 = h % 12;
+  if(h12 === 0) h12 = 12;
+  return `${period}${h12}點${String(m).padStart(2,"0")}分`;
+}
+
+function foodLine(key,label,verb){
+  if(noneAnswers[key]) return `☐ ${label}：（沒有${verb||"吃"}）`;
+  const val = answers[key]||"";
+  const portion = portionAnswers[key];
+  if(portion && portion !== "沒吃"){
+    return `☐ ${label}：${val}（${portion}）`;
+  }
+  return `☐ ${label}：${val}`;
+}
+
+function buildText(){
+  const lines = [
+    "【減醣餐紀錄表】",
+    `日期：${formatDate(answers.date)}`,
+    `哪一餐：${answers.meal}`,
+    `幾點吃：${formatTime(answers.time)}`,
+    `今日狀況：${answers.note}`,
+    foodLine("protein","蛋白質"),
+    foodLine("starch","澱粉"),
+    foodLine("fat","油脂"),
+    foodLine("fruit","水果"),
+    foodLine("seasoning","調味料"),
+    foodLine("veggie","青菜"),
+    foodLine("drink","飲料／湯品","喝")
+  ];
+  return lines.join("\n");
+}
+
+function renderReview(){
+  const text=buildText();
+  app.className="review";
+  app.innerHTML=`
+    <div class="progress-shell"><div class="progress-bar" style="width:100%"></div></div>
+    <div class="progress-text">全部完成✔</div>
+    <div class="card">
+      <h2>紀錄完成，辛苦了！</h2>
+      <div class="sub">請確認以下內容，按下按鈕後就能分享到社團。</div>
+      <div class="summary">${escapeHtml(text)}</div>
+      <button class="btn copy-btn" onclick="copyText(event)">複製這一份紀錄</button>
+      <div class="toast" id="toast">已複製文字，貼到社團分享吧✅</div>
+      <button class="edit-link" onclick="idx=0;render()">回去修改內容</button>
+    </div>`;
+}
+
+function copyText(e){
+  flash(e);
+  const text=buildText();
+  const done=()=>{const t=document.getElementById("toast");t.classList.add("show");};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallback(text,done));
+  } else fallback(text,done);
+}
+function fallback(text,done){
+  const ta=document.createElement("textarea");
+  ta.value=text;ta.style.position="fixed";ta.style.opacity="0";
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");done();}catch(e){alert("複製失敗，請手動選取文字");}
+  document.body.removeChild(ta);
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+function escapeAttr(s){return String(s).replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+
+render();
+</script>
+</body>
+</html>
