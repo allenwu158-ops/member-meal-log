@@ -300,6 +300,40 @@ function isWeekend(iso){
   return day === 0 || day === 6;
 }
 
+// ⚠️ 每年更新一次：這是台灣的國定假日清單（含補假），資料來源為行政院人事行政總處公告。
+// 每年約六月底會公告次年的辦公日曆表，屆時把新的日期換進這個陣列即可，格式是「YYYY-MM-DD」。
+const HOLIDAYS_2026 = [
+  "2026-01-01", // 元旦
+  "2026-02-15", // 小年夜
+  "2026-02-16", // 除夕
+  "2026-02-17", // 初一
+  "2026-02-18", // 初二
+  "2026-02-19", // 初三
+  "2026-02-20", // 小年夜補假
+  "2026-02-27", // 和平紀念日補假
+  "2026-02-28", // 和平紀念日
+  "2026-04-03", // 兒童節補假
+  "2026-04-04", // 兒童節
+  "2026-04-05", // 清明節
+  "2026-05-01", // 勞動節
+  "2026-06-19", // 端午節
+  "2026-09-25", // 中秋節
+  "2026-09-28", // 教師節（孔子誕辰紀念日）
+  "2026-10-09", // 國慶日補假
+  "2026-10-10", // 國慶日
+  "2026-10-25", // 台灣光復節
+  "2026-10-26", // 台灣光復節補假
+  "2026-12-25"  // 行憲紀念日
+];
+
+function isHoliday(iso){
+  return HOLIDAYS_2026.includes(iso);
+}
+
+function isCheatDay(iso){
+  return isWeekend(iso) || isHoliday(iso);
+}
+
 const HISTORY_STORAGE_KEY = "mealLogHistory_v1";
 const HISTORY_MAX = 6;
 
@@ -331,30 +365,56 @@ function rememberHistory(key, rawValue){
   saveHistoryToStorage(history);
 }
 
-const questions = [
+const HEAD_QUESTIONS = [
   {key:"mood", label:"減醣心情", t:"想分享今天的減醣心情嗎？", type:"text", noToggle:true, noHistory:true, skippable:true, hint:"沒有想法可以直接按跳過"},
   {key:"quote", label:"金句分享", t:"有沒有想分享的金句？", type:"text", noToggle:true, noHistory:true, skippable:true, hint:"沒有想法可以直接按跳過"},
-  {key:"date", label:"日期", t:"日期", type:"date", default:todayStr(), bigTitle:true},
-  {key:"breakfast", label:"早餐", t:"早餐吃了什麼？", type:"text", hint:"自由填寫，不用特別寫幾點吃", noToggle:true, quickFill:["MCT油","牛蒡茶","低咖啡因咖啡"]},
-  {key:"lunch_starch", label:"午餐．澱粉", t:"午餐澱粉吃了什麼？", type:"text", noToggle:true, quickFill:["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"]},
-  {key:"lunch_protein", label:"午餐．蛋白質", t:"午餐蛋白質吃了什麼？", type:"text", noToggle:true},
-  {key:"lunch_veggie", label:"午餐．蔬菜", t:"午餐蔬菜吃了什麼？", type:"text", noToggle:true},
-  {key:"lunch_drink", label:"午餐．飲料湯品", t:"午餐喝了什麼飲料或湯？", type:"text", noToggle:true, quickFill:["黑蒜醋","牛蒡茶"]},
-  {key:"dinner_starch", label:"晚餐．澱粉", t:"晚餐澱粉吃了什麼？", type:"text", noToggle:true, quickFill:["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"]},
-  {key:"dinner_protein", label:"晚餐．蛋白質", t:"晚餐蛋白質吃了什麼？", type:"text", noToggle:true},
-  {key:"dinner_veggie", label:"晚餐．蔬菜", t:"晚餐蔬菜吃了什麼？", type:"text", noToggle:true},
-  {key:"dinner_drink", label:"晚餐．飲料湯品", t:"晚餐喝了什麼飲料或湯？", type:"text", noToggle:true, quickFill:["黑蒜醋","牛蒡茶"]},
-  {key:"tools", label:"減醣神器", t:"今天有搭配減醣神器嗎？", type:"multiselect", opts:["白腎豆","雙孅","窈精靈","大蒜精","酵素益生菌"]}
+  {key:"date", label:"日期", t:"日期", type:"date", default:todayStr(), bigTitle:true}
 ];
+
+const TOOLS_QUESTION = {key:"tools", label:"減醣神器", t:"今天有搭配減醣神器嗎？", type:"multiselect", opts:["白腎豆","雙孅","窈精靈","大蒜精","酵素益生菌"]};
+
+function weekdayMealQuestions(){
+  return [
+    {key:"breakfast", label:"早餐", t:"早餐吃了什麼？", type:"text", hint:"自由填寫，不用特別寫幾點吃", noToggle:true, quickFill:["MCT油","酪梨油","牛蒡茶","低咖啡因咖啡"]},
+    {key:"lunch_starch", label:"午餐．澱粉", t:"午餐澱粉吃了什麼？", type:"text", noToggle:true, quickFill:["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"]},
+    {key:"lunch_protein", label:"午餐．蛋白質", t:"午餐蛋白質吃了什麼？", type:"text", noToggle:true},
+    {key:"lunch_veggie", label:"午餐．蔬菜", t:"午餐蔬菜吃了什麼？", type:"text", noToggle:true},
+    {key:"lunch_drink", label:"午餐．飲料湯品", t:"午餐喝了什麼飲料或湯？", type:"text", noToggle:true, quickFill:["黑蒜醋","牛蒡茶"]},
+    {key:"dinner_starch", label:"晚餐．澱粉", t:"晚餐澱粉吃了什麼？", type:"text", noToggle:true, quickFill:["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"]},
+    {key:"dinner_protein", label:"晚餐．蛋白質", t:"晚餐蛋白質吃了什麼？", type:"text", noToggle:true},
+    {key:"dinner_veggie", label:"晚餐．蔬菜", t:"晚餐蔬菜吃了什麼？", type:"text", noToggle:true},
+    {key:"dinner_drink", label:"晚餐．飲料湯品", t:"晚餐喝了什麼飲料或湯？", type:"text", noToggle:true, quickFill:["黑蒜醋","牛蒡茶"]}
+  ];
+}
+
+function weekendMealQuestions(){
+  return [
+    {key:"breakfast", label:"早餐", t:"早餐吃了什麼？", type:"text", hint:"作弊日不用拆分類別，自由填寫就好，例如：大腸麵線、披薩", noToggle:true, quickFill:["MCT油","酪梨油","牛蒡茶","低咖啡因咖啡"]},
+    {key:"lunch_free", label:"午餐", t:"午餐吃了什麼？", type:"text", hint:"作弊日不用拆分類別，自由填寫就好，例如：大腸麵線、披薩", noToggle:true},
+    {key:"dinner_free", label:"晚餐", t:"晚餐吃了什麼？", type:"text", hint:"作弊日不用拆分類別，自由填寫就好，例如：大腸麵線、披薩", noToggle:true}
+  ];
+}
+
+let questions = [...HEAD_QUESTIONS, ...weekdayMealQuestions(), TOOLS_QUESTION];
 
 const answers = {};
 const noneAnswers = {};
 const portionAnswers = {};
-questions.forEach(q=>{
-  answers[q.key] = q.default || "";
-  noneAnswers[q.key] = false;
-  portionAnswers[q.key] = "";
-});
+function registerAnswerKeys(list){
+  list.forEach(q=>{
+    if(!(q.key in answers)) answers[q.key] = q.default || "";
+    if(!(q.key in noneAnswers)) noneAnswers[q.key] = false;
+    if(!(q.key in portionAnswers)) portionAnswers[q.key] = "";
+  });
+}
+registerAnswerKeys(questions);
+
+function rebuildMealQuestions(){
+  const weekend = isCheatDay(answers.date);
+  const mealBlock = weekend ? weekendMealQuestions() : weekdayMealQuestions();
+  questions = [...HEAD_QUESTIONS, ...mealBlock, TOOLS_QUESTION];
+  registerAnswerKeys(questions);
+}
 
 let idx = 0;
 const app = document.getElementById("app");
@@ -590,7 +650,14 @@ function flash(e){
   setTimeout(()=>el.classList.remove("glow"),650);
 }
 
-function next(e){ flash(e); saveCurrent(); idx++; render(); window.scrollTo({top:0,behavior:"smooth"}); }
+function next(e){
+  flash(e);
+  saveCurrent();
+  if(questions[idx].key === "date") rebuildMealQuestions();
+  idx++;
+  render();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 function prev(e){ flash(e); saveCurrent(); idx--; render(); window.scrollTo({top:0,behavior:"smooth"}); }
 function skipField(e){
   answers[questions[idx].key] = "";
@@ -606,7 +673,8 @@ function formatDate(iso){
 }
 
 function buildText(){
-  const title = isWeekend(answers.date) ? "作弊餐紀錄表" : "減醣餐紀錄表";
+  const weekend = isCheatDay(answers.date);
+  const title = weekend ? "作弊餐紀錄表" : "減醣餐紀錄表";
   const lines = [];
 
   if(answers.mood){ lines.push(answers.mood, ""); }
@@ -617,19 +685,34 @@ function buildText(){
     "",
     `【${title}】`,
     `早餐：${answers.breakfast}`,
-    "",
-    "午餐",
-    `☐ 澱粉：${answers.lunch_starch}`,
-    `☐ 蛋白質：${answers.lunch_protein}`,
-    `☐ 蔬菜：${answers.lunch_veggie}`,
-    `☐ 飲料／湯品：${answers.lunch_drink}`,
-    "",
-    "晚餐",
-    `☐ 澱粉：${answers.dinner_starch}`,
-    `☐ 蛋白質：${answers.dinner_protein}`,
-    `☐ 蔬菜：${answers.dinner_veggie}`,
-    `☐ 飲料／湯品：${answers.dinner_drink}`,
-    "",
+    ""
+  );
+
+  if(weekend){
+    lines.push(
+      `午餐：${answers.lunch_free}`,
+      "",
+      `晚餐：${answers.dinner_free}`,
+      ""
+    );
+  } else {
+    lines.push(
+      "午餐",
+      `☐ 澱粉：${answers.lunch_starch}`,
+      `☐ 蛋白質：${answers.lunch_protein}`,
+      `☐ 蔬菜：${answers.lunch_veggie}`,
+      `☐ 飲料／湯品：${answers.lunch_drink}`,
+      "",
+      "晚餐",
+      `☐ 澱粉：${answers.dinner_starch}`,
+      `☐ 蛋白質：${answers.dinner_protein}`,
+      `☐ 蔬菜：${answers.dinner_veggie}`,
+      `☐ 飲料／湯品：${answers.dinner_drink}`,
+      ""
+    );
+  }
+
+  lines.push(
     `☐ 減醣神器：${answers.tools}`,
     "👇     👇",
     "🛒《💯官方正品 黑蒜醋、白腎豆、牛蒡茶》",
