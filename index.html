@@ -222,6 +222,11 @@
     font-size:18px;background:none;border:none;cursor:pointer;text-decoration:underline;
     width:100%;font-family:inherit;padding:8px;
   }
+  .skip-btn{
+    display:block;text-align:center;margin-top:14px;color:var(--ink-soft);
+    font-size:18px;background:none;border:none;cursor:pointer;text-decoration:underline;
+    width:100%;font-family:inherit;padding:8px;
+  }
 
   @media (prefers-reduced-motion:reduce){
     .card,.btn.glow,.copy-btn.glow{animation:none}
@@ -280,6 +285,20 @@ function nowStr(){
   const mi = String(d.getMinutes()).padStart(2,"0");
   return `${h}:${mi}`;
 }
+function getWeekday(iso){
+  if(!iso) return "";
+  const days = ["日","一","二","三","四","五","六"];
+  const d = new Date(iso + "T00:00:00");
+  if(isNaN(d.getTime())) return "";
+  return "星期" + days[d.getDay()];
+}
+function isWeekend(iso){
+  if(!iso) return false;
+  const d = new Date(iso + "T00:00:00");
+  if(isNaN(d.getTime())) return false;
+  const day = d.getDay();
+  return day === 0 || day === 6;
+}
 
 const HISTORY_STORAGE_KEY = "mealLogHistory_v1";
 const HISTORY_MAX = 6;
@@ -313,27 +332,29 @@ function rememberHistory(key, rawValue){
 }
 
 const questions = [
+  {key:"mood", label:"減醣心情", t:"想分享今天的減醣心情嗎？", type:"text", noToggle:true, noHistory:true, skippable:true, hint:"沒有想法可以直接按跳過"},
+  {key:"quote", label:"金句分享", t:"有沒有想分享的金句？", type:"text", noToggle:true, noHistory:true, skippable:true, hint:"沒有想法可以直接按跳過"},
   {key:"date", label:"日期", t:"日期", type:"date", default:todayStr(), bigTitle:true},
-  {
-    key:"meal", label:"哪一餐", t:"這是哪一餐？", type:"radio",
-    opts:["早餐","午餐","晚餐"]
-  },
-  {key:"time", label:"幾點吃", t:"幾點吃的？", type:"time", default:"", hint:"滑動選擇正確的用餐時間，不是現在的時間"},
-  {key:"note", label:"今日狀況", t:"今日狀況", type:"text", hint:"有特別狀況才需要填，例如：家庭聚餐、生理期、感冒、應酬", noneLabel:"沒有特殊狀況"},
-  {key:"protein", label:"蛋白質", t:"蛋白質吃了什麼？", type:"text", hint:"例如：雞腿、雞胸肉、雞蛋、豬排、牛肉、豆腐、蝦仁", warn:"如果是用炸的、裹粉的，請務必寫清楚，例如：炸雞腿、炸豬排。如果有去皮，請附註「去皮」", noToggle:true, portions:["沒吃","不到一個掌心","大約一個掌心","超過一個掌心"]},
-  {key:"starch", label:"澱粉", t:"澱粉吃了什麼？", type:"text", hint:"點選常見選項，或直接在下面輸入", noToggle:true, quickFill:["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"], portions:["沒吃","1/3拳頭","半拳頭","一拳頭","超過一拳頭"]},
-  {key:"fat", label:"油脂", t:"油脂吃了什麼？", type:"text", hint:"例如：堅果、酪梨、橄欖油", noToggle:true, quickFill:["MCT油","餐廳的油"]},
-  {key:"fruit", label:"水果", t:"水果吃了什麼？", type:"text", hint:"例如：芭樂、蘋果"},
-  {key:"seasoning", label:"調味料", t:"調味料用了什麼？", type:"text", hint:"例如：鹽、胡椒、醬油", noToggle:true},
-  {key:"veggie", label:"青菜", t:"青菜吃了什麼？", type:"text", hint:"例如：花椰菜、地瓜葉"},
-  {key:"drink", label:"飲料／湯品", t:"喝了什麼飲料或湯？", type:"text", hint:"例如：黑咖啡、無糖茶、味噌湯", verb:"喝", quickFill:["黑蒜醋","牛蒡茶"]},
+  {key:"breakfast", label:"早餐", t:"早餐吃了什麼？", type:"text", hint:"自由填寫，不用特別寫幾點吃", noToggle:true, quickFill:["MCT油","牛蒡茶","低咖啡因咖啡"]},
+  {key:"lunch_starch", label:"午餐．澱粉", t:"午餐澱粉吃了什麼？", type:"text", noToggle:true, quickFill:["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"]},
+  {key:"lunch_protein", label:"午餐．蛋白質", t:"午餐蛋白質吃了什麼？", type:"text", noToggle:true},
+  {key:"lunch_veggie", label:"午餐．蔬菜", t:"午餐蔬菜吃了什麼？", type:"text", noToggle:true},
+  {key:"lunch_drink", label:"午餐．飲料湯品", t:"午餐喝了什麼飲料或湯？", type:"text", noToggle:true, quickFill:["黑蒜醋","牛蒡茶"]},
+  {key:"dinner_starch", label:"晚餐．澱粉", t:"晚餐澱粉吃了什麼？", type:"text", noToggle:true, quickFill:["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"]},
+  {key:"dinner_protein", label:"晚餐．蛋白質", t:"晚餐蛋白質吃了什麼？", type:"text", noToggle:true},
+  {key:"dinner_veggie", label:"晚餐．蔬菜", t:"晚餐蔬菜吃了什麼？", type:"text", noToggle:true},
+  {key:"dinner_drink", label:"晚餐．飲料湯品", t:"晚餐喝了什麼飲料或湯？", type:"text", noToggle:true, quickFill:["黑蒜醋","牛蒡茶"]},
   {key:"tools", label:"減醣神器", t:"今天有搭配減醣神器嗎？", type:"multiselect", opts:["白腎豆","雙孅","窈精靈","大蒜精","酵素益生菌"]}
 ];
 
 const answers = {};
 const noneAnswers = {};
 const portionAnswers = {};
-questions.forEach(q=>{ answers[q.key] = q.default || ""; noneAnswers[q.key] = false; portionAnswers[q.key] = ""; });
+questions.forEach(q=>{
+  answers[q.key] = q.default || "";
+  noneAnswers[q.key] = false;
+  portionAnswers[q.key] = "";
+});
 
 let idx = 0;
 const app = document.getElementById("app");
@@ -385,7 +406,7 @@ function render(){
       }).join("") + `</div>`;
     }
     const presetList = q.quickFill ? q.quickFill : [];
-    const pastItems = (history[q.key] || []).filter(item => !presetList.includes(item));
+    const pastItems = q.noHistory ? [] : (history[q.key] || []).filter(item => !presetList.includes(item));
     if(pastItems.length > 0){
       const current = answers[q.key].split(/、|,|，/).map(s=>s.trim()).filter(Boolean);
       const histBtnStyle = `border-color:#F2A6C9;border-width:4px;font-weight:800;color:#fff`;
@@ -397,7 +418,8 @@ function render(){
       }).join("") + `</div>`;
     }
   } else if(q.type==="date"){
-    field = `<input type="date" id="fld" value="${escapeAttr(answers[q.key])}">`;
+    field = `<input type="date" id="fld" value="${escapeAttr(answers[q.key])}">` +
+      `<div class="q-hint" id="weekdayDisplay" style="margin-top:12px;margin-bottom:0;font-weight:700;color:var(--blue-deep)">${getWeekday(answers[q.key])}</div>`;
   } else if(q.type==="time"){
     field = `<input type="time" id="fld" value="${escapeAttr(answers[q.key])}">`;
   } else if(q.type==="radio"){
@@ -434,6 +456,7 @@ function render(){
         ${idx>0?`<button class="btn btn-ghost" onclick="prev(event)">上一項</button>`:``}
         <button class="btn btn-primary" onclick="next(event)">${idx===questions.length-1?"完成紀錄":"下一項"}</button>
       </div>
+      ${q.skippable?`<button class="skip-btn" onclick="skipField(event)">不想寫，直接跳過</button>`:``}
     </div>`;
 
   wire(q);
@@ -490,6 +513,16 @@ function wire(q){
       });
     });
   }
+  if(q.type==="date"){
+    const fld = document.getElementById("fld");
+    if(fld){
+      fld.addEventListener("input", ()=>{
+        answers[q.key] = fld.value;
+        const wd = document.getElementById("weekdayDisplay");
+        if(wd) wd.textContent = getWeekday(fld.value);
+      });
+    }
+  }
 }
 
 function selectPortion(e, val){
@@ -544,7 +577,7 @@ function saveCurrent(){
   const q = questions[idx];
   if(f && !f.disabled){
     answers[q.key]=f.value.trim();
-    if(q.type==="text" && answers[q.key]) rememberHistory(q.key, answers[q.key]);
+    if(q.type==="text" && !q.noHistory && answers[q.key]) rememberHistory(q.key, answers[q.key]);
   }
 }
 
@@ -559,6 +592,12 @@ function flash(e){
 
 function next(e){ flash(e); saveCurrent(); idx++; render(); window.scrollTo({top:0,behavior:"smooth"}); }
 function prev(e){ flash(e); saveCurrent(); idx--; render(); window.scrollTo({top:0,behavior:"smooth"}); }
+function skipField(e){
+  answers[questions[idx].key] = "";
+  idx++;
+  render();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 
 function formatDate(iso){
   if(!iso) return "";
@@ -566,41 +605,37 @@ function formatDate(iso){
   return `${y}／${m}／${d}`;
 }
 
-function formatTime(hm){
-  if(!hm) return "";
-  let [h,m] = hm.split(":").map(Number);
-  const period = h < 12 ? "上午" : "下午";
-  let h12 = h % 12;
-  if(h12 === 0) h12 = 12;
-  return `${period}${h12}點${String(m).padStart(2,"0")}分`;
-}
-
-function foodLine(key,label,verb){
-  if(noneAnswers[key]) return `☐ ${label}：（沒有${verb||"吃"}）`;
-  const val = answers[key]||"";
-  const portion = portionAnswers[key];
-  if(portion && portion !== "沒吃"){
-    return `☐ ${label}：${val}（${portion}）`;
-  }
-  return `☐ ${label}：${val}`;
-}
-
 function buildText(){
-  const lines = [
-    "【減醣餐紀錄表】",
-    `日期：${formatDate(answers.date)}`,
-    `哪一餐：${answers.meal}`,
-    `幾點吃：${formatTime(answers.time)}`,
-    `今日狀況：${answers.note}`,
-    foodLine("protein","蛋白質"),
-    foodLine("starch","澱粉"),
-    foodLine("fat","油脂"),
-    foodLine("fruit","水果"),
-    foodLine("seasoning","調味料"),
-    foodLine("veggie","青菜"),
-    foodLine("drink","飲料／湯品","喝"),
-    `☐ 減醣神器：${answers.tools}`
-  ];
+  const title = isWeekend(answers.date) ? "作弊餐紀錄表" : "減醣餐紀錄表";
+  const lines = [];
+
+  if(answers.mood){ lines.push(answers.mood, ""); }
+  if(answers.quote){ lines.push(answers.quote, ""); }
+
+  lines.push(
+    `日期：${formatDate(answers.date)}（${getWeekday(answers.date)}）`,
+    "",
+    `【${title}】`,
+    `早餐：${answers.breakfast}`,
+    "",
+    "午餐",
+    `☐ 澱粉：${answers.lunch_starch}`,
+    `☐ 蛋白質：${answers.lunch_protein}`,
+    `☐ 蔬菜：${answers.lunch_veggie}`,
+    `☐ 飲料／湯品：${answers.lunch_drink}`,
+    "",
+    "晚餐",
+    `☐ 澱粉：${answers.dinner_starch}`,
+    `☐ 蛋白質：${answers.dinner_protein}`,
+    `☐ 蔬菜：${answers.dinner_veggie}`,
+    `☐ 飲料／湯品：${answers.dinner_drink}`,
+    "",
+    `☐ 減醣神器：${answers.tools}`,
+    "👇     👇",
+    "🛒《💯官方正品 黑蒜醋、白腎豆、牛蒡茶》",
+    "立刻逛逛👉 pse.is/唐奇嚴選",
+    "💬聯絡客服👉 pse.is/唐奇嚴選客服"
+  );
   return lines.join("\n");
 }
 
