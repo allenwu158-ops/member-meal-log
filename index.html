@@ -477,37 +477,7 @@ const QUOTE_LINES = [
   "忍得住嘴，才守得住心。",
   "控制得了飲食的人，通常也控制得了人生的方向。",
   "精緻的外表背後，是看不見的自律，和看得見的堅持。",
-  "你戒得掉的，不只是那口甜食，還有那個習慣放棄的自己。",
-  "吃進去的每一口，都是在為明天的身材投票。",
-  "瘦子糾結吃與不吃，胖子糾結吃飽與沒吃飽。",
-  "衣服穿不下時，痛苦的不是衣服，是你的脂肪。",
-  "世界上最動聽的3個字，不是『我愛你』，而是『你瘦了』。",
-  "只要你瘦下來，整個人生都會開外掛！",
-  "世界上最痛苦的三角戀：我愛食物，脂肪愛我。",
-  "減肥沒那麼容易，每塊肉都有它的脾氣！",
-  "不要低頭，雙下巴會掉下來。",
-  "人生三大錯覺：我還能再吃一點、明天開始減肥、這次不會胖。",
-  "每天吵著要減肥，只是想嚇嚇身上的肉而已！",
-  "裝睡的人叫不醒，不肯努力的胖子瘦不了。",
-  "沒有天生的胖子，也沒有瘦不下來的胖子。",
-  "要美麗要好身材，就沒有那麼多藉口！",
-  "人生不能靠心情減肥，而是靠心態減肥。",
-  "吃不了減肥的苦，就吃自卑的苦。",
-  "費盡心思挑衣服不如減肥，瘦下來穿什麼都好看。",
-  "汗水是肥肉在哭泣！",
-  "做個斤斤計較的女孩！",
-  "微胖已經變成了胖，你還打算等到什麼時候？",
-  "減肥這件事，胖的人永遠在喊，瘦的人從不放棄。",
-  "你努力變美，不是為了配得上誰。你努力變美，整個宇宙都會接收到訊息，吸引更美好的事情到你的身邊來。",
-  "你要有控制自己、讓自己自信與自律的本事。",
-  "每當日子很苦的時候就吃一顆糖，然而人生不會因此變甜，你會成為一個很苦的胖子。",
-  "顯瘦的衣服包著的還是胖子。",
-  "之所以發胖，因為你說燒烤加啤酒致癌他照吃，但談減肥他卻說胃痛不健康。",
-  "再不瘦我們就老了。瘦了的人生不一定開外掛，但是胖的人生走都走不動。",
-  "胖沒有錯，但放縱自己繼續胖就是錯。",
-  "最傷心的不是買不起，而是你穿不上去。",
-  "從前回不去了，但體重回得去。",
-  "我們不能更年輕，但我們可以更輕。"
+  "你戒得掉的，不只是那口甜食，還有那個習慣放棄的自己。"
 ];
 
 const HEAD_QUESTIONS = [
@@ -518,29 +488,57 @@ const HEAD_QUESTIONS = [
 
 const TOOLS_QUESTION = {key:"tools", label:"減醣神器", t:"今天有搭配減醣神器嗎？", type:"multiselect", opts:["白腎豆","雙孅","窈精靈","大蒜精","酵素益生菌"]};
 
-function weekdayMealQuestions(){
+const DAY_CHOICE_QUESTION = {
+  key:"dayChoice", label:"今天怎麼吃", t:"今天你想要吃作弊餐，還是減醣餐？", type:"radio",
+  opts:["減醣餐","作弊餐"], hint:"今天是週末或假日，先問一下你自己的打算"
+};
+
+const MEAL_PATTERN_QUESTION = {
+  key:"mealPattern", label:"今天的節奏", t:"今天是吃三餐，還是早上斷食，還是晚上斷食？", type:"radio",
+  opts:["三餐","早上斷食","晚上斷食"]
+};
+
+const STARCH_QUICKFILL = ["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"];
+const DRINK_QUICKFILL = ["黑蒜醋","牛蒡茶"];
+const FASTING_QUICKFILL = ["MCT油","酪梨油","牛蒡茶","低咖啡因咖啡"];
+
+// 完整減醣餐的四分類題組，早、午、晚都可以共用
+function fullMealQuestions(mealKey, mealLabel){
   return [
-    {key:"breakfast", label:"早餐", t:"早餐吃了什麼？", type:"text", hint:"自由填寫，不用特別寫幾點吃", noToggle:true, quickFill:["MCT油","酪梨油","牛蒡茶","低咖啡因咖啡"]},
-    {key:"lunch_starch", label:"午餐．澱粉", t:"午餐澱粉吃了什麼？", type:"text", noToggle:true, hint:"點選常見選項，或直接在下面輸入", quickFill:["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"]},
-    {key:"lunch_protein", label:"午餐．蛋白質", t:"午餐蛋白質吃了什麼？", type:"text", noToggle:true},
-    {key:"lunch_veggie", label:"午餐．蔬菜", t:"午餐蔬菜吃了什麼？", type:"text", noToggle:true},
-    {key:"lunch_drink", label:"午餐．飲料湯品", t:"午餐喝了什麼飲料或湯？", type:"text", noToggle:true, quickFill:["黑蒜醋","牛蒡茶"]},
-    {key:"dinner_starch", label:"晚餐．澱粉", t:"晚餐澱粉吃了什麼？", type:"text", noToggle:true, hint:"點選常見選項，或直接在下面輸入", quickFill:["長秈白米","一般白米","100%全麥麵包","一般全麥麵包","義大利麵","好控麵","地瓜","綠豆冬粉","一般冬粉","雪蓮子／鷹嘴豆"]},
-    {key:"dinner_protein", label:"晚餐．蛋白質", t:"晚餐蛋白質吃了什麼？", type:"text", noToggle:true},
-    {key:"dinner_veggie", label:"晚餐．蔬菜", t:"晚餐蔬菜吃了什麼？", type:"text", noToggle:true},
-    {key:"dinner_drink", label:"晚餐．飲料湯品", t:"晚餐喝了什麼飲料或湯？", type:"text", noToggle:true, quickFill:["黑蒜醋","牛蒡茶"]}
+    {key:`${mealKey}_starch`, label:`${mealLabel}．澱粉`, t:`${mealLabel}澱粉吃了什麼？`, type:"text", noToggle:true, quickFill:STARCH_QUICKFILL},
+    {key:`${mealKey}_protein`, label:`${mealLabel}．蛋白質`, t:`${mealLabel}蛋白質吃了什麼？`, type:"text", noToggle:true},
+    {key:`${mealKey}_veggie`, label:`${mealLabel}．蔬菜`, t:`${mealLabel}蔬菜吃了什麼？`, type:"text", noToggle:true},
+    {key:`${mealKey}_drink`, label:`${mealLabel}．飲料湯品`, t:`${mealLabel}喝了什麼飲料或湯？`, type:"text", noToggle:true, quickFill:DRINK_QUICKFILL}
   ];
 }
 
-function weekendMealQuestions(){
+// 斷食時段的簡易單一欄位，只給不會打破斷食的東西
+function fastingBoxQuestion(mealKey, mealLabel){
+  return {key:mealKey, label:mealLabel, t:`${mealLabel}吃了什麼？`, type:"text", hint:"斷食中，簡單記錄就好", noToggle:true, quickFill:FASTING_QUICKFILL};
+}
+
+// 作弊日用的自由填空單一欄位
+function cheatBoxQuestion(mealKey, mealLabel){
+  return {key:mealKey, label:mealLabel, t:`${mealLabel}吃了什麼？`, type:"text", hint:"作弊日不用拆分類別，自由填寫就好，例如：大腸麵線、披薩", noToggle:true, quickFill: mealKey==="breakfast" ? FASTING_QUICKFILL : undefined};
+}
+
+// 依「今天的節奏」決定早、午、晚餐各自要用哪一種題組；午餐固定是完整四分類，因為168斷食不會斷在午餐
+function mealBlockForPattern(pattern){
+  const breakfastBlock = pattern === "早上斷食" ? [fastingBoxQuestion("breakfast","早餐")] : fullMealQuestions("breakfast","早餐");
+  const dinnerBlock = pattern === "晚上斷食" ? [fastingBoxQuestion("dinner","晚餐")] : fullMealQuestions("dinner","晚餐");
+  return [...breakfastBlock, ...fullMealQuestions("lunch","午餐"), ...dinnerBlock];
+}
+
+// 作弊日用：早、午、晚都是自由填空
+function cheatMealQuestions(){
   return [
-    {key:"breakfast", label:"早餐", t:"早餐吃了什麼？", type:"text", hint:"作弊日不用拆分類別，自由填寫就好，例如：大腸麵線、披薩", noToggle:true, quickFill:["MCT油","酪梨油","牛蒡茶","低咖啡因咖啡"]},
-    {key:"lunch_free", label:"午餐", t:"午餐吃了什麼？", type:"text", hint:"作弊日不用拆分類別，自由填寫就好，例如：大腸麵線、披薩", noToggle:true},
-    {key:"dinner_free", label:"晚餐", t:"晚餐吃了什麼？", type:"text", hint:"作弊日不用拆分類別，自由填寫就好，例如：大腸麵線、披薩", noToggle:true}
+    cheatBoxQuestion("breakfast_free","早餐"),
+    cheatBoxQuestion("lunch_free","午餐"),
+    cheatBoxQuestion("dinner_free","晚餐")
   ];
 }
 
-let questions = [...HEAD_QUESTIONS, ...weekdayMealQuestions(), TOOLS_QUESTION];
+let questions = [...HEAD_QUESTIONS, MEAL_PATTERN_QUESTION, ...mealBlockForPattern("三餐"), TOOLS_QUESTION];
 
 const answers = {};
 const noneAnswers = {};
@@ -554,10 +552,33 @@ function registerAnswerKeys(list){
 }
 registerAnswerKeys(questions);
 
-function rebuildMealQuestions(){
-  const weekend = isCheatDay(answers.date);
-  const mealBlock = weekend ? weekendMealQuestions() : weekdayMealQuestions();
-  questions = [...HEAD_QUESTIONS, ...mealBlock, TOOLS_QUESTION];
+// 離開日期頁時呼叫：平日直接問「今天的節奏」；週末或國定假日先問作弊餐還是減醣餐
+function rebuildAfterDate(){
+  if(isCheatDay(answers.date)){
+    questions = [...HEAD_QUESTIONS, DAY_CHOICE_QUESTION, ...mealBlockForPattern(answers.mealPattern || "三餐"), TOOLS_QUESTION];
+  } else {
+    answers.dayChoice = ""; // 清掉可能殘留的舊選擇，避免日期改回平日後仍誤判
+    questions = [...HEAD_QUESTIONS, MEAL_PATTERN_QUESTION, ...mealBlockForPattern(answers.mealPattern || "三餐"), TOOLS_QUESTION];
+  }
+  registerAnswerKeys(questions);
+}
+
+// 離開「今天怎麼吃」選擇題時呼叫：選作弊餐就直接進自由填空，不再多問節奏；選減醣餐才接著問今天的節奏
+function rebuildAfterDayChoice(){
+  if(answers.dayChoice === "作弊餐"){
+    answers.mealPattern = ""; // 作弊日不需要節奏這一題，清掉殘留答案
+    questions = [...HEAD_QUESTIONS, DAY_CHOICE_QUESTION, ...cheatMealQuestions(), TOOLS_QUESTION];
+  } else {
+    questions = [...HEAD_QUESTIONS, DAY_CHOICE_QUESTION, MEAL_PATTERN_QUESTION, ...mealBlockForPattern(answers.mealPattern || "三餐"), TOOLS_QUESTION];
+  }
+  registerAnswerKeys(questions);
+}
+
+// 離開「今天的節奏」這一題時呼叫：依早上斷食／晚上斷食／三餐，決定早晚餐各自的題組
+function rebuildAfterMealPattern(){
+  const hasDayChoice = questions.some(q=>q.key==="dayChoice");
+  const head = hasDayChoice ? [...HEAD_QUESTIONS, DAY_CHOICE_QUESTION, MEAL_PATTERN_QUESTION] : [...HEAD_QUESTIONS, MEAL_PATTERN_QUESTION];
+  questions = [...head, ...mealBlockForPattern(answers.mealPattern), TOOLS_QUESTION];
   registerAnswerKeys(questions);
 }
 
@@ -799,7 +820,10 @@ function flash(e){
 function next(e){
   flash(e);
   saveCurrent();
-  if(questions[idx].key === "date") rebuildMealQuestions();
+  const leavingKey = questions[idx].key;
+  if(leavingKey === "date") rebuildAfterDate();
+  else if(leavingKey === "dayChoice") rebuildAfterDayChoice();
+  else if(leavingKey === "mealPattern") rebuildAfterMealPattern();
   idx++;
   render();
   window.scrollTo({top:0,behavior:"smooth"});
@@ -818,9 +842,27 @@ function formatDate(iso){
   return `${y}／${m}／${d}`;
 }
 
+// 依目前的答案，組出某一餐要顯示的文字區塊（自由填空 / 斷食簡易 / 完整四分類）
+function mealTextBlock(mealKey, mealLabel, mode){
+  if(mode === "cheat"){
+    return [`${mealLabel}：${answers[`${mealKey}_free`]}`, ""];
+  }
+  if(mode === "fasting"){
+    return [`${mealLabel}：${answers[mealKey]}`, ""];
+  }
+  return [
+    mealLabel,
+    `☐ 澱粉：${answers[`${mealKey}_starch`]}`,
+    `☐ 蛋白質：${answers[`${mealKey}_protein`]}`,
+    `☐ 蔬菜：${answers[`${mealKey}_veggie`]}`,
+    `☐ 飲料／湯品：${answers[`${mealKey}_drink`]}`,
+    ""
+  ];
+}
+
 function buildText(){
-  const weekend = isCheatDay(answers.date);
-  const title = weekend ? "作弊餐紀錄表" : "減醣餐紀錄表";
+  const isCheat = answers.dayChoice ? (answers.dayChoice === "作弊餐") : isCheatDay(answers.date);
+  const title = isCheat ? "作弊餐紀錄表" : "減醣餐紀錄表";
   const lines = [];
 
   if(answers.mood){ lines.push(answers.mood, ""); }
@@ -829,33 +871,19 @@ function buildText(){
   lines.push(
     `日期：${formatDate(answers.date)}（${getWeekday(answers.date)}）`,
     "",
-    `【${title}】`,
-    `早餐：${answers.breakfast}`,
-    ""
+    `【${title}】`
   );
 
-  if(weekend){
-    lines.push(
-      `午餐：${answers.lunch_free}`,
-      "",
-      `晚餐：${answers.dinner_free}`,
-      ""
-    );
+  if(isCheat){
+    lines.push(...mealTextBlock("breakfast","早餐","cheat"));
+    lines.push(...mealTextBlock("lunch","午餐","cheat"));
+    lines.push(...mealTextBlock("dinner","晚餐","cheat"));
   } else {
-    lines.push(
-      "午餐",
-      `☐ 澱粉：${answers.lunch_starch}`,
-      `☐ 蛋白質：${answers.lunch_protein}`,
-      `☐ 蔬菜：${answers.lunch_veggie}`,
-      `☐ 飲料／湯品：${answers.lunch_drink}`,
-      "",
-      "晚餐",
-      `☐ 澱粉：${answers.dinner_starch}`,
-      `☐ 蛋白質：${answers.dinner_protein}`,
-      `☐ 蔬菜：${answers.dinner_veggie}`,
-      `☐ 飲料／湯品：${answers.dinner_drink}`,
-      ""
-    );
+    const breakfastMode = answers.mealPattern === "早上斷食" ? "fasting" : "full";
+    const dinnerMode = answers.mealPattern === "晚上斷食" ? "fasting" : "full";
+    lines.push(...mealTextBlock("breakfast","早餐",breakfastMode));
+    lines.push(...mealTextBlock("lunch","午餐","full"));
+    lines.push(...mealTextBlock("dinner","晚餐",dinnerMode));
   }
 
   lines.push(
