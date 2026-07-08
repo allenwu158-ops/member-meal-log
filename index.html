@@ -217,6 +217,59 @@
     opacity:0;transform:translateY(6px);transition:all .3s;
   }
   .toast.show{opacity:1;transform:none}
+
+  /* 複製按鈕：持續脈動提示 */
+  .copy-btn-wrap{position:relative;margin-top:18px}
+  .copy-btn-wrap .copy-btn{margin-top:0}
+  .copy-btn.attention{animation:glowLoopRose 1.8s ease-out infinite}
+  @keyframes glowLoopRose{
+    0%{box-shadow:0 0 0 0 rgba(242,166,201,0.6)}
+    70%{box-shadow:0 0 0 18px rgba(242,166,201,0)}
+    100%{box-shadow:0 0 0 0 rgba(242,166,201,0)}
+  }
+  .tap-hint{
+    position:absolute;left:50%;top:100%;margin-top:-16px;font-size:56px;
+    transform:translateX(-50%);
+    animation:tapBounce 1.4s ease-in-out infinite;
+    pointer-events:none;filter:drop-shadow(0 5px 8px rgba(0,0,0,.25));
+    transition:opacity .2s;
+    z-index:2;
+  }
+  .tap-hint.hide{opacity:0}
+  @keyframes tapBounce{
+    0%,100%{transform:translateX(-50%) translateY(0) scale(1);opacity:.92}
+    35%{transform:translateX(-50%) translateY(9px) scale(.9);opacity:1}
+    55%{transform:translateX(-50%) translateY(0) scale(1);opacity:.92}
+  }
+
+  /* 複製成功後的彈窗提示 */
+  .copy-modal-overlay{
+    position:fixed;inset:0;background:rgba(44,36,56,0.45);
+    display:none;align-items:center;justify-content:center;
+    padding:24px;z-index:999;
+  }
+  .copy-modal-overlay.show{display:flex}
+  .copy-modal-card{
+    background:#fff;border-radius:20px;padding:34px 26px 28px;
+    max-width:360px;width:100%;text-align:center;
+    box-shadow:var(--shadow);
+    animation:copyModalPop .25s ease;
+  }
+  @keyframes copyModalPop{
+    0%{transform:scale(.92);opacity:0}
+    100%{transform:scale(1);opacity:1}
+  }
+  .copy-modal-emoji{font-size:46px;margin-bottom:10px}
+  .copy-modal-card h3{font-size:24px;margin-bottom:12px;color:var(--ink)}
+  .copy-modal-card p{font-size:21.5px;line-height:1.75;color:var(--ink-soft);margin-bottom:24px}
+  .copy-modal-close{width:100%}
+  .fb-badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    background:#1877F2;color:#fff;font-size:16px;font-weight:800;
+    width:26px;height:26px;border-radius:6px;
+    vertical-align:middle;margin:0 3px;
+    font-family:Georgia,'Times New Roman',serif;
+  }
   .edit-link{
     display:block;text-align:center;margin-top:18px;color:var(--ink-soft);
     font-size:18px;background:none;border:none;cursor:pointer;text-decoration:underline;
@@ -275,7 +328,7 @@
   }
 
   @media (prefers-reduced-motion:reduce){
-    .card,.btn.glow,.copy-btn.glow{animation:none}
+    .card,.btn.glow,.copy-btn.glow,.copy-btn.attention,.tap-hint,.copy-modal-card{animation:none}
   }
 
   @media (prefers-color-scheme:dark){
@@ -897,18 +950,27 @@ function buildText(){
 }
 
 function renderReview(){
-  const text=buildText();
   app.className="review";
   app.innerHTML=`
     <div class="progress-shell"><div class="progress-bar" style="width:100%"></div></div>
     <div class="progress-text">全部完成✔</div>
     <div class="card">
       <h2>紀錄完成，辛苦了！</h2>
-      <div class="sub">請確認以下內容，按下按鈕後就能分享到社團。</div>
-      <div class="summary">${escapeHtml(text)}</div>
-      <button class="btn copy-btn" onclick="copyText(event)">複製這一份紀錄</button>
+      <div class="sub">按下按鈕，複製後就能分享到社團。</div>
+      <div class="copy-btn-wrap" id="copyBtnWrap">
+        <button class="btn copy-btn attention" onclick="copyText(event)">按下按鈕，自動複製紀錄表</button>
+        <div class="tap-hint" id="tapHint" aria-hidden="true">👆</div>
+      </div>
       <div class="toast" id="toast">已複製文字，貼到社團分享吧✅</div>
       <button class="edit-link" onclick="idx=0;render()">回去修改內容</button>
+    </div>
+    <div class="copy-modal-overlay" id="copyModal">
+      <div class="copy-modal-card">
+        <div class="copy-modal-emoji">🎉</div>
+        <h3>恭喜你！</h3>
+        <p>已經複製好了減醣餐紀錄表，<br>請分享到<span class="fb-badge">f</span>臉書社團。</p>
+        <button class="btn btn-primary copy-modal-close" onclick="closeCopyModal()">我知道了</button>
+      </div>
     </div>`;
 }
 
@@ -968,10 +1030,21 @@ function useInspireQuote(e){
 function copyText(e){
   flash(e);
   const text=buildText();
-  const done=()=>{const t=document.getElementById("toast");t.classList.add("show");};
+  const done=()=>{
+    const wrap=document.getElementById("copyBtnWrap");
+    if(wrap) wrap.querySelector(".copy-btn")?.classList.remove("attention");
+    const hint=document.getElementById("tapHint");
+    if(hint) hint.classList.add("hide");
+    const modal=document.getElementById("copyModal");
+    if(modal) modal.classList.add("show");
+  };
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(done).catch(()=>fallback(text,done));
   } else fallback(text,done);
+}
+function closeCopyModal(){
+  const modal=document.getElementById("copyModal");
+  if(modal) modal.classList.remove("show");
 }
 function fallback(text,done){
   const ta=document.createElement("textarea");
